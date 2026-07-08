@@ -1,0 +1,67 @@
+name: Daily Unbundled Report (cross-repo)
+
+# Phase 2 safety net (canonical home = the registry). Every weekday, list PRs
+# merged in the last 7 days across all 3 app repos with NO bundle:* label, and
+# post to Slack #qa-releases if any are found. Never silently drops PRs.
+#
+# Requires RELEASE_BOT_PAT (repo:read on all 3 app repos) as a secret in THIS repo.
+
+on:
+  schedule:
+    - cron: '30 4 * * 1-5'   # 10:00 IST, Mon–Fri
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Scan app repos for unbundled merged PRs
+        id: scan
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_BOT_PAT || secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          SINCE="$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Scanning merged PRs since $SINCE" >&2
+
+          ALL="[]"
+          for R in nf-app-flutter nf_node nikahforever; do
+            J="$(gh pr list --repo "$OWNER/$R" --state merged --limit 200 \
+                  --json number,title,author,labels,mergedAt,url 2>/dev/null || echo '[]')"
+            FILTERED="$(echo "$J" | jq --arg since "$SINCE" --arg repo "$R" '
+              [ .[]
+                | select(.mergedAt != null and .mergedAt >= $since)
+                | select([ .labels[].name | select(startswith("bundle:")) ] | length == 0)
+                | { repo: $repo, number, title, url, author: (.author.login // "unknown"), mergedAt }
+              ]')"
+            ALL="$(jq -n --argjson a "$ALL" --argjson b "$FILTERED" '$a + $b')"
+          done
+
+          echo "$ALL" > unbundled.json
+          COUNT="$(echo "$ALL" | jq 'length')"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Found $COUNT unbundled merged PR(s)." >&2
+
+      - name: Post to Slack (only if any found)
+        if: ${{ steps.scan.outputs.count != '0' }}
+        env:
+          SLACK_WEBHOOK_QA: ${{ secrets.SLACK_WEBHOOK_QA }}
+        run: |
+          set -euo pipefail
+          LIST="$(jq -r '.[] | "• [\(.repo)] #\(.number) \(.title) (@\(.author)) \(.url)"' unbundled.json)"
+          TEXT="$(printf '*🚨 Unbundled merged PRs (last 7 days)*\nThese merged PRs have NO bundle:* label and will be INVISIBLE to release QA:\n\n%s\n\nFix: add the bundle:* label (edit PR title to [DOMAIN-####]) or confirm they belong to no release bundle.' "$LIST")"
+          if [[ -z "${SLACK_WEBHOOK_QA:-}" || "${SLACK_WEBHOOK_QA}" == *"REPLACE_ME"* ]]; then
+            echo "SLACK_WEBHOOK_QA not set — printing instead:" >&2
+            echo "$TEXT"
+          else
+            PAYLOAD="$(jq -n --arg text "$TEXT" '{text:$text}')"
+            curl -fsS -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_QA" >/dev/null
+            echo "Posted daily unbundled report to Slack." >&2
+          fi
