@@ -1,0 +1,145 @@
+{
+  "release_id": "manual-pr-test-female-free-premium",
+  "platform": "android",
+  "app_version": "10.9.9",
+  "app_build": "0",
+  "generated_at": "2026-07-10T07:27:58Z",
+  "tags": {
+    "current": "manual-ffp",
+    "previous": ""
+  },
+  "deployed": {
+    "nf_node": {
+      "git_sha": "unknown",
+      "sha_source": "unknown",
+      "deployed_at": "unknown",
+      "url": ""
+    },
+    "nikahforever": {
+      "git_sha": "unknown",
+      "sha_source": "unknown",
+      "deployed_at": "unknown",
+      "url": ""
+    }
+  },
+  "unbundled_flutter_prs": [],
+  "bundles": [
+    {
+      "id": "FEMALE-FREE-PREMIUM",
+      "domain": "PROF",
+      "registry_issue_url": "",
+      "in_scope_prs": [
+        {
+          "number": 633,
+          "title": "Free female experminet",
+          "url": "https://github.com/akhlaquekarim/nf-app-flutter/pull/633",
+          "author": "abdulrehman043",
+          "merge_commit": "590813ab815376dbe131de136e8cc1206ec9bb35",
+          "head_ref": "free_female_Experminet",
+          "base_ref": "staging",
+          "merged_at": "2026-07-07T07:17:22Z",
+          "in_release_scope": true
+        },
+        {
+          "number": 644,
+          "title": "feat: add female free membership feature with analytics and UI compon\u2026",
+          "url": "https://github.com/akhlaquekarim/nf-app-flutter/pull/644",
+          "author": "abdulrehman043",
+          "merge_commit": "12e56c62bc2364f2c26946b347f1cb88d424aaac",
+          "head_ref": "free-female-membership",
+          "base_ref": "staging",
+          "merged_at": "2026-07-10T07:03:23Z",
+          "in_release_scope": true
+        }
+      ],
+      "bundle_all_prs": [
+        {
+          "repo": "nf-app-flutter",
+          "number": 633,
+          "title": "Free female experminet",
+          "state": "MERGED",
+          "merged": true,
+          "merge_commit": "590813ab815376dbe131de136e8cc1206ec9bb35",
+          "url": "https://github.com/akhlaquekarim/nf-app-flutter/pull/633",
+          "author": "abdulrehman043",
+          "head_ref": "free_female_Experminet",
+          "base_ref": "staging",
+          "merged_at": "2026-07-07T07:17:22Z",
+          "in_release_scope": true
+        },
+        {
+          "repo": "nf-app-flutter",
+          "number": 644,
+          "title": "feat: add female free membership feature with analytics and UI compon\u2026",
+          "state": "MERGED",
+          "merged": true,
+          "merge_commit": "12e56c62bc2364f2c26946b347f1cb88d424aaac",
+          "url": "https://github.com/akhlaquekarim/nf-app-flutter/pull/644",
+          "author": "abdulrehman043",
+          "head_ref": "free-female-membership",
+          "base_ref": "staging",
+          "merged_at": "2026-07-10T07:03:23Z",
+          "in_release_scope": true
+        },
+        {
+          "repo": "nikahforever",
+          "number": 3710,
+          "title": "Implement Female Free Premium membership feature",
+          "state": "MERGED",
+          "merged": true,
+          "merge_commit": "d82aadbc04c36a987a3ca53d455021ca10100898",
+          "url": "https://github.com/akhlaquekarim/nikahforever/pull/3710",
+          "author": "abdulrehman043",
+          "head_ref": "free-female-experminent",
+          "base_ref": "master",
+          "merged_at": "2026-07-06T08:26:09Z",
+          "in_release_scope": false
+        },
+        {
+          "repo": "nikahforever",
+          "number": 3749,
+          "title": "Add recommendations_from_server_log table and logging functionality",
+          "state": "MERGED",
+          "merged": true,
+          "merge_commit": "3f3292d3c4e1f7d72a1e3ed9667d5fc324d11b54",
+          "url": "https://github.com/akhlaquekarim/nikahforever/pull/3749",
+          "author": "nomankhan33",
+          "head_ref": "log_ml_response",
+          "base_ref": "master",
+          "merged_at": "2026-07-09T13:29:56Z",
+          "in_release_scope": false
+        }
+      ],
+      "bundle_complete": true,
+      "drift_status": "unknown",
+      "drift_message": "manual test \u2014 Flutter merged to staging, PHP merged to master; deploy SHA not verified",
+      "qa_ready_this_release": true,
+      "blockers": [],
+      "qa_intent": "Female free premium / free membership experiment \u2014 test ALL paths separately.\n\nEXPERIMENT (50/50):\n- Treatment: member_id % 2 == 0 (even) \u2192 show offer UI + eligible for \u20b90 Basic 3-day grant\n- Control: odd member_id \u2192 no popup/banner, no grant even if profile complete\n- Rollout tweak in php #3749: experiment exposure 10% \u2192 50%\n\nELIGIBILITY (all must be true for treatment popup):\n- gender = female (member.gender = 2)\n- self profile (on_behalf_id = 1)\n- Payment_model::is_recurring($member_id) === true (recurring cohort, NOT active subscription)\n- membership = 1 (free)\n- not already rewarded\n- variant = on / enabled in configurations.female_free_membership\n\nEXCLUDED (no offer):\n- male, on-behalf (daughter/sister), non-recurring, already premium, already rewarded, control cohort\n\nFLUTTER SURFACES (do not collapse):\n- Home pinned banner: FemaleFreeMembershipBanner on homepage_screen.dart (home tab only)\n- Tap banner \u2192 FemaleFreeMembershipPopup.show \u2192 FemaleFreeMembershipFlowScreen (intro \u2192 steps \u2192 success)\n- Step deep-links: photos \u2192 ProfileGallery(); selfie \u2192 SelfieInstructionPage(source: female_free_membership)\n- Dashboard config: POST V1/dashboard_information \u2192 configurations.female_free_membership\n- Progress API: POST V1/female_free_membership_progress\n- Claim API: POST V1/female_free_membership_claim (explicit grant only \u2014 no passive auto-grant on dashboard poll)\n- DashBaordProvider: effectiveFemaleFreeMembership, refreshFemaleFreeMembershipProgress\n\nPRD CHECKLIST (backend source of truth \u2014 verify which steps ship in diff):\n- photos: min 4 (pending counts toward 4 per PRD)\n- bio: introduction or happy_story\n- religious: namaz, quran, roza, zakat, hajj, hijab in life_style[0]\n- lifestyle: diet, smoke, drink, personality_traits, marriage_values, marriage_timeline, interests\n- family: familytype, familystatus, nativestate, fatheroccupation, motheroccupation, brother, sister (+ nativecity, married_bro/sis conditionals)\nNOTE: Flutter model comments show keys photos|selfie and total_steps default 2 \u2014 if diff differs from PRD 5-step checklist, flag intent_diff_mismatch.\n\nCLAIM ERRORS: not_eligible | incomplete_profile | already_rewarded | already_premium | reward_failed\n\nBACKEND GRANT (on successful claim, idempotent):\n- member.membership = 2\n- payments_info = time() + 3*86400\n- package_payment amount=0, payment_type = Female Profile Free Premium\n- plans_recurring id 20 (Basic weekly)\n- NO RM assignment for this promo\n- Search_model::insert_update_search_temp membership=2\n- Second claim must NOT extend expiry\n\nANALYTICS (MoEngage): ffm_popup_shown, ffm_popup_dismissed, ffm_checklist_completed, ffm_reward_granted, ffm_reward_failed\n\nREGRESSION: V1.php dashboard_information_post shared surface \u2014 other popups/sheets still work\nENV: Flutter #633/#644 merged to staging; PHP #3710/#3749 merged to master\n",
+      "hints": [
+        "flutter #633-#644: lib/features/female_free_membership/**, lib/services/female_free_membership_service.dart, lib/model/dashbaordmodel.dart (FemaleFreeMembershipConfig), lib/features/homepage/presentation/screens/homepage_screen.dart",
+        "flutter APIs: female_free_membership_progress, female_free_membership_claim; dashboard key configurations.female_free_membership",
+        "php #3710: free-female-experminent \u2014 V1.php dashboard_information, Common_model progress helpers, Payment_model grant",
+        "php #3749: log_ml_response \u2014 rollout 10% \u2192 50%",
+        "env mismatch: Flutter on staging, PHP on master",
+        "analytics: ffm_popup_shown, ffm_popup_dismissed, ffm_checklist_completed, ffm_reward_granted, ffm_reward_failed"
+      ],
+      "shared_surface_warnings": [
+        "nikahforever #3710 touches shared surface: application/controllers/V1.php (dashboard_information_post)"
+      ],
+      "flutter_prs": [],
+      "backend_prs": {
+        "nf_node": [],
+        "nikahforever": []
+      }
+    }
+  ],
+  "orgs": {
+    "apps": "akhlaquekarim",
+    "registry": "Mdsarfraz667"
+  },
+  "prd_ids": [
+    "FEMALE-FREE-PREMIUM"
+  ],
+  "prd_count": 1
+}
